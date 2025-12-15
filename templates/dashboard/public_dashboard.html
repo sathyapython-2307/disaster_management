@@ -1,0 +1,122 @@
+{% extends 'base.html' %}
+
+{% block title %}Public Dashboard - Disaster Dashboard{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="page-title">
+                <i class="bi bi-info-circle"></i> Public Information
+            </h1>
+            <p class="text-muted">Current Disaster Alerts & Information</p>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6 mb-4">
+            <div class="stat-card">
+                <div class="stat-icon" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                    <i class="bi bi-exclamation-triangle"></i>
+                </div>
+                <div class="stat-content">
+                    <h6>Active Warnings</h6>
+                    <h3 id="active-warnings">0</h3>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 mb-4">
+            <div class="stat-card">
+                <div class="stat-icon" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+                    <i class="bi bi-info-circle"></i>
+                </div>
+                <div class="stat-content">
+                    <h6>Last Updated</h6>
+                    <h3 id="last-update">--</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Disaster Map</h5>
+                </div>
+                <div class="card-body">
+                    <div id="public-map" style="height: 500px; border-radius: 8px;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Current Alerts</h5>
+                </div>
+                <div class="card-body">
+                    <div id="public-alerts">
+                        <p class="text-muted">Loading alerts...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="alert alert-info">
+                <i class="bi bi-info-circle"></i>
+                <strong>Important:</strong> This information is provided for public awareness. For emergency assistance, please contact your local emergency services.
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        loadPublicData();
+        initPublicMap();
+    });
+
+    function loadPublicData() {
+        fetch('/api/disasters/active_events/')
+        .then(r => r.json())
+        .then(data => {
+            document.getElementById('active-warnings').textContent = data.length;
+            document.getElementById('last-update').textContent = new Date().toLocaleTimeString();
+        });
+
+        fetch('/api/alerts/critical/')
+        .then(r => r.json())
+        .then(data => {
+            displayPublicAlerts(data);
+        });
+    }
+
+    function displayPublicAlerts(alerts) {
+        const container = document.getElementById('public-alerts');
+        if (alerts.length === 0) {
+            container.innerHTML = '<p class="text-muted">No active alerts</p>';
+            return;
+        }
+        
+        container.innerHTML = alerts.map(alert => `
+            <div class="alert alert-danger mb-3">
+                <h6>${alert.title}</h6>
+                <p class="mb-0">${alert.message}</p>
+                <small class="text-muted">Updated: ${new Date(alert.created_at).toLocaleString()}</small>
+            </div>
+        `).join('');
+    }
+
+    function initPublicMap() {
+        const map = L.map('public-map').setView([20, 0], 2);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+    }
+</script>
+{% endblock %}

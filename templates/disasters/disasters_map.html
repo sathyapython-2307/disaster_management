@@ -1,0 +1,214 @@
+{% extends 'base.html' %}
+
+{% block title %}Disasters Map - Disaster Dashboard{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="page-title">
+                <i class="bi bi-map"></i> Disaster Events Map
+            </h1>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-3">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Filters</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="form-label">Disaster Type</label>
+                        <select id="disaster-type-filter" class="form-select">
+                            <option value="">All Types</option>
+                            <option value="flood">Flood</option>
+                            <option value="earthquake">Earthquake</option>
+                            <option value="cyclone">Cyclone</option>
+                            <option value="wildfire">Wildfire</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Status</label>
+                        <select id="status-filter" class="form-select">
+                            <option value="">All Status</option>
+                            <option value="predicted">Predicted</option>
+                            <option value="active">Active</option>
+                            <option value="contained">Contained</option>
+                            <option value="resolved">Resolved</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Min Risk Score</label>
+                        <input type="range" id="risk-filter" class="form-range" min="0" max="100" value="0">
+                        <small id="risk-value">0%</small>
+                    </div>
+                    <button class="btn btn-primary w-100" onclick="applyFilters()">Apply Filters</button>
+                </div>
+            </div>
+
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h5 class="mb-0">Events List</h5>
+                </div>
+                <div class="card-body" style="max-height: 500px; overflow-y: auto;">
+                    <div id="events-list">
+                        <p class="text-muted">Loading...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-9">
+            <div class="card">
+                <div class="card-body p-0">
+                    <div id="disaster-map" style="height: 600px; border-radius: 8px;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let map;
+    let markers = {};
+
+    document.addEventListener('DOMContentLoaded', function() {
+        initMap();
+        loadDisasters();
+        
+        document.getElementById('risk-filter').addEventListener('input', function() {
+            document.getElementById('risk-value').textContent = this.value + '%';
+        });
+    });
+
+    function initMap() {
+        map = L.map('disaster-map').setView([20, 0], 2);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(map);
+    }
+
+    function loadDisasters() {
+        fetch('/api/disasters/')
+        .then(r => r.json())
+        .then(data => {
+            displayDisasters(data.results || data);
+        });
+    }
+
+    function displayDisasters(disasters) {
+        const list = document.getElementById('events-list');
+        list.innerHTML = '';
+
+        if (!disasters || disasters.length === 0) {
+            list.innerHTML = '<p class="text-muted">No events found</p>';
+            return;
+        }
+
+        disasters.forEach(disaster => {
+            // Only add map marker if coordinates exist
+            if (disaster.latitude !== null && disaster.longitude !== null) {
+                try {
+                    const marker = L.circleMarker([disaster.latitude, disaster.longitude], {
+                        radius: Math.min(disaster.risk_score / 10, 20),
+                        fillColor: getRiskColor(disaster.risk_score),
+                        color: '#000',
+                        weight: 1,
+                        opacity: 1,
+                        fillOpacity: 0.7
+                    }).addTo(map);
+
+                    marker.bindPopup(`
+                        <strong>${disaster.location_name}</strong><br>
+                        Type: ${disaster.disaster_type}<br>
+                        Risk: ${disaster.risk_score}%<br>
+                        Status: ${disaster.status}
+                    `);
+
+                    markers[disaster.id] = marker;
+                } catch (e) {
+                    console.warn('Error adding marker for', disaster.location_name, e);
+                }
+            }
+
+            // Add to events list (works with or without coordinates)
+            const item = document.createElement('div');
+            item.className = 'alert alert-' + getSeverityClass(disaster.risk_score) + ' mb-2';
+            const coordText = (disaster.latitude !== null && disaster.longitude !== null) 
+                ? ` [${disaster.latitude.toFixed(2)}, ${disaster.longitude.toFixed(2)}]` 
+                : ' [No coordinates]';
+            item.innerHTML = `
+                <strong>${disaster.location_name}</strong><br>
+                <small>${disaster.disaster_type} - Risk: ${disaster.risk_score}%</small><br>
+                <small class="text-muted">${coordText}</small>
+            `;
+            item.style.cursor = disaster.latitude && disaster.longitude ? 'pointer' : 'default';
+            if (markers[disaster.id]) {
+                item.onclick = () => markers[disaster.id].openPopup();
+            }
+            list.appendChild(item);
+        });
+    }
+
+    function getRiskColor(risk) {
+        if (risk >= 80) return '#dc3545';
+        if (risk >= 60) return '#fd7e14';
+        if (risk >= 40) return '#ffc107';
+        return '#28a745';
+    }
+
+    function getSeverityClass(risk) {
+        if (risk >= 80) return 'danger';
+        if (risk >= 60) return 'warning';
+        if (risk >= 40) return 'info';
+        return 'success';
+    }
+
+    function applyFilters() {
+        const type = document.getElementById('disaster-type-filter').value;
+        const status = document.getElementById('status-filter').value;
+        const risk = document.getElementById('risk-filter').value;
+
+        let url = '/api/disasters/?';
+        const params = [];
+        
+        if (type) params.push('disaster_type=' + type);
+        if (status) params.push('status=' + status);
+        if (risk > 0) params.push('risk_score_min=' + risk);
+        
+        url += params.join('&');
+        
+        console.log('Filtering with URL:', url);
+        
+        const list = document.getElementById('events-list');
+        list.innerHTML = '<p class="text-muted">Loading filtered results...</p>';
+        
+        fetch(url)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('API Error: ' + response.status);
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('Filter results:', data);
+            // Clear existing markers
+            Object.values(markers).forEach(m => {
+                try {
+                    map.removeLayer(m);
+                } catch (e) {
+                    console.warn('Error removing marker', e);
+                }
+            });
+            markers = {};
+            displayDisasters(data.results || data);
+        })
+        .catch(error => {
+            console.error('Filter error:', error);
+            list.innerHTML = '<p class="text-danger">Error loading filtered results: ' + error.message + '</p>';
+        });
+    }
+</script>
+{% endblock %}

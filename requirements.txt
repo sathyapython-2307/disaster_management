@@ -1,0 +1,10 @@
+Django
+djangorestframework
+django-cors-headers
+django-filter
+Pillow
+python-decouple
+requests
+pytz
+gunicorn
+whitenoise

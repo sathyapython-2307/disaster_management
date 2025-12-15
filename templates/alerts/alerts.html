@@ -1,0 +1,184 @@
+{% extends 'base.html' %}
+
+{% block title %}Alerts - Disaster Dashboard{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="page-title">
+                <i class="bi bi-bell"></i> Alerts & Notifications
+            </h1>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="stat-icon" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                    <i class="bi bi-bell"></i>
+                </div>
+                <div class="stat-content">
+                    <h6>Total Alerts</h6>
+                    <h3 id="total-alerts">0</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="stat-icon" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                    <i class="bi bi-exclamation-circle"></i>
+                </div>
+                <div class="stat-content">
+                    <h6>Critical</h6>
+                    <h3 id="critical-count">0</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="stat-icon" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+                    <i class="bi bi-clock"></i>
+                </div>
+                <div class="stat-content">
+                    <h6>Pending</h6>
+                    <h3 id="pending-count">0</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="stat-icon" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);">
+                    <i class="bi bi-check-circle"></i>
+                </div>
+                <div class="stat-content">
+                    <h6>Acknowledged</h6>
+                    <h3 id="acknowledged-count">0</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <div class="row align-items-center">
+                        <div class="col">
+                            <h5 class="mb-0">Alert History</h5>
+                        </div>
+                        <div class="col-auto">
+                            <select id="severity-filter" class="form-select form-select-sm" style="width: auto;">
+                                <option value="">All Severities</option>
+                                <option value="critical">Critical</option>
+                                <option value="high">High</option>
+                                <option value="medium">Medium</option>
+                                <option value="low">Low</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div id="alerts-container">
+                        <p class="text-muted">Loading alerts...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        loadAlerts();
+        document.getElementById('severity-filter').addEventListener('change', loadAlerts);
+    });
+
+    function loadAlerts() {
+        const severity = document.getElementById('severity-filter').value;
+        let url = '/api/alerts/';
+        if (severity) url += '?severity=' + severity;
+
+        fetch(url)
+        .then(r => r.json())
+        .then(data => {
+            const alerts = data.results || data;
+            displayAlerts(alerts);
+            updateStats(alerts);
+        });
+    }
+
+    function displayAlerts(alerts) {
+        const container = document.getElementById('alerts-container');
+        if (alerts.length === 0) {
+            container.innerHTML = '<p class="text-muted">No alerts</p>';
+            return;
+        }
+
+        container.innerHTML = alerts.map(alert => `
+            <div class="alert alert-${getSeverityClass(alert.severity)} mb-3">
+                <div class="row align-items-center">
+                    <div class="col">
+                        <h6 class="mb-1">${alert.title}</h6>
+                        <p class="mb-1">${alert.message}</p>
+                        <small class="text-muted">
+                            ${new Date(alert.created_at).toLocaleString()} - Status: ${alert.status}
+                        </small>
+                    </div>
+                    <div class="col-auto">
+                        ${alert.status === 'pending' ? `
+                            <button class="btn btn-sm btn-outline-primary" onclick="acknowledgeAlert('${alert.id}')">
+                                Acknowledge
+                            </button>
+                        ` : ''}
+                    </div>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    function updateStats(alerts) {
+        document.getElementById('total-alerts').textContent = alerts.length;
+        document.getElementById('critical-count').textContent = alerts.filter(a => a.severity === 'critical').length;
+        document.getElementById('pending-count').textContent = alerts.filter(a => a.status === 'pending').length;
+        document.getElementById('acknowledged-count').textContent = alerts.filter(a => a.status === 'acknowledged').length;
+    }
+
+    function getSeverityClass(severity) {
+        const map = {
+            'critical': 'danger',
+            'high': 'warning',
+            'medium': 'info',
+            'low': 'success'
+        };
+        return map[severity] || 'secondary';
+    }
+
+    function acknowledgeAlert(alertId) {
+        fetch(`/api/alerts/${alertId}/acknowledge/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken'),
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(r => r.json())
+        .then(() => loadAlerts());
+    }
+
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+</script>
+{% endblock %}

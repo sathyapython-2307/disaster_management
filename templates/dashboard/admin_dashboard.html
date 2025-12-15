@@ -1,0 +1,148 @@
+{% extends 'base.html' %}
+
+{% block title %}Admin Dashboard - Disaster Dashboard{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="page-title">
+                <i class="bi bi-speedometer2"></i> Admin Dashboard
+            </h1>
+            <p class="text-muted">System Overview & Management</p>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-3 mb-4">
+            <div class="stat-card">
+                <div class="stat-icon" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                    <i class="bi bi-exclamation-triangle"></i>
+                </div>
+                <div class="stat-content">
+                    <h6>Active Events</h6>
+                    <h3 id="active-events">0</h3>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3 mb-4">
+            <div class="stat-card">
+                <div class="stat-icon" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                    <i class="bi bi-bell"></i>
+                </div>
+                <div class="stat-content">
+                    <h6>Critical Alerts</h6>
+                    <h3 id="critical-alerts">0</h3>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3 mb-4">
+            <div class="stat-card">
+                <div class="stat-icon" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+                    <i class="bi bi-people"></i>
+                </div>
+                <div class="stat-content">
+                    <h6>Active Users</h6>
+                    <h3 id="active-users">0</h3>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3 mb-4">
+            <div class="stat-card">
+                <div class="stat-icon" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);">
+                    <i class="bi bi-graph-up"></i>
+                </div>
+                <div class="stat-content">
+                    <h6>System Health</h6>
+                    <h3 id="system-health">Good</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Recent Events</h5>
+                </div>
+                <div class="card-body">
+                    <div id="recent-events-container">
+                        <p class="text-muted">Loading...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Quick Actions</h5>
+                </div>
+                <div class="card-body">
+                    <a href="{% url 'governance' %}" class="btn btn-outline-primary w-100 mb-2">
+                        <i class="bi bi-gear"></i> Manage System
+                    </a>
+                    <a href="{% url 'analytics' %}" class="btn btn-outline-primary w-100 mb-2">
+                        <i class="bi bi-graph-up"></i> View Analytics
+                    </a>
+                    <a href="{% url 'alerts' %}" class="btn btn-outline-primary w-100">
+                        <i class="bi bi-bell"></i> View Alerts
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        loadDashboardData();
+    });
+
+    function loadDashboardData() {
+        fetch('/api/disasters/active_events/', {
+            headers: {'Authorization': 'Bearer ' + getCookie('sessionid')}
+        })
+        .then(r => r.json())
+        .then(data => {
+            document.getElementById('active-events').textContent = data.length;
+        });
+
+        fetch('/api/alerts/critical/', {
+            headers: {'Authorization': 'Bearer ' + getCookie('sessionid')}
+        })
+        .then(r => r.json())
+        .then(data => {
+            document.getElementById('critical-alerts').textContent = data.length;
+        });
+
+        fetch('/api/system-metrics/health/', {
+            headers: {'Authorization': 'Bearer ' + getCookie('sessionid')}
+        })
+        .then(r => r.json())
+        .then(data => {
+            document.getElementById('system-health').textContent = data.status.toUpperCase();
+            document.getElementById('active-users').textContent = data.active_users;
+        });
+    }
+
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+</script>
+{% endblock %}

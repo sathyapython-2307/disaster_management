@@ -1,0 +1,649 @@
+{% extends 'base.html' %}
+
+{% block title %}Governance - Disaster Dashboard{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="page-title">
+                <i class="bi bi-gear"></i> Administration & Governance
+            </h1>
+            <p class="text-muted">System Configuration & User Management</p>
+        </div>
+    </div>
+
+    <ul class="nav nav-tabs mb-4" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="users-tab" data-bs-toggle="tab" data-bs-target="#users" type="button" role="tab">
+                <i class="bi bi-people"></i> Users
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="roles-tab" data-bs-toggle="tab" data-bs-target="#roles" type="button" role="tab">
+                <i class="bi bi-shield"></i> Roles & Permissions
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="geofences-tab" data-bs-toggle="tab" data-bs-target="#geofences" type="button" role="tab">
+                <i class="bi bi-map"></i> Geofences
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="datasources-tab" data-bs-toggle="tab" data-bs-target="#datasources" type="button" role="tab">
+                <i class="bi bi-database"></i> Data Sources
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="audit-tab" data-bs-toggle="tab" data-bs-target="#audit" type="button" role="tab">
+                <i class="bi bi-file-text"></i> Audit Logs
+            </button>
+        </li>
+    </ul>
+
+    <div class="tab-content">
+        <!-- Users Tab -->
+        <div class="tab-pane fade show active" id="users" role="tabpanel">
+            <div class="card">
+                <div class="card-header">
+                    <div class="row align-items-center">
+                        <div class="col">
+                            <h5 class="mb-0">User Management</h5>
+                        </div>
+                        <div class="col-auto">
+                            <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addUserModal">
+                                <i class="bi bi-plus"></i> Add User
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover" id="users-table">
+                            <thead>
+                                <tr>
+                                    <th>Username</th>
+                                    <th>Email</th>
+                                    <th>Role</th>
+                                    <th>Organization</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="users-tbody">
+                                <tr><td colspan="6" class="text-muted">Loading...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Roles Tab -->
+        <div class="tab-pane fade" id="roles" role="tabpanel">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Role Permissions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>Admin</h6>
+                            <ul class="list-group">
+                                <li class="list-group-item">Manage Users</li>
+                                <li class="list-group-item">Configure System</li>
+                                <li class="list-group-item">View Audit Logs</li>
+                                <li class="list-group-item">Manage Geofences</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Analyst</h6>
+                            <ul class="list-group">
+                                <li class="list-group-item">View Disasters</li>
+                                <li class="list-group-item">View Analytics</li>
+                                <li class="list-group-item">Export Reports</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Geofences Tab -->
+        <div class="tab-pane fade" id="geofences" role="tabpanel">
+            <div class="card">
+                <div class="card-header">
+                    <div class="row align-items-center">
+                        <div class="col">
+                            <h5 class="mb-0">Geofence Management</h5>
+                        </div>
+                        <div class="col-auto">
+                            <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addGeofenceModal">
+                                <i class="bi bi-plus"></i> Add Geofence
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div id="geofences-container">
+                        <p class="text-muted">Loading...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Data Sources Tab -->
+        <div class="tab-pane fade" id="datasources" role="tabpanel">
+            <div class="card">
+                <div class="card-header">
+                    <div class="row align-items-center">
+                        <div class="col">
+                            <h5 class="mb-0">Data Source Configuration</h5>
+                        </div>
+                        <div class="col-auto">
+                            <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addDataSourceModal">
+                                <i class="bi bi-plus"></i> Add Source
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div id="datasources-container">
+                        <p class="text-muted">Loading...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Audit Logs Tab -->
+        <div class="tab-pane fade" id="audit" role="tabpanel">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Audit Trail</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm" id="audit-table">
+                            <thead>
+                                <tr>
+                                    <th>Timestamp</th>
+                                    <th>User</th>
+                                    <th>Action</th>
+                                    <th>Resource</th>
+                                    <th>Description</th>
+                                </tr>
+                            </thead>
+                            <tbody id="audit-tbody">
+                                <tr><td colspan="5" class="text-muted">Loading...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        loadUsers();
+        loadGeofences();
+        loadDataSources();
+        loadAuditLogs();
+    });
+
+    function loadUsers() {
+        fetch('/api/users/')
+        .then(r => r.json())
+        .then(data => {
+            const tbody = document.getElementById('users-tbody');
+            tbody.innerHTML = (data.results || data).map(user => `
+                <tr>
+                    <td>${user.username}</td>
+                    <td>${user.email}</td>
+                    <td><span class="badge bg-primary">${user.role}</span></td>
+                    <td>${user.organization || '-'}</td>
+                    <td>${user.is_active_user ? '<span class="badge bg-success">Active</span>' : '<span class="badge bg-danger">Inactive</span>'}</td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-primary" onclick="editUser('${user.id}')">Edit</button>
+                    </td>
+                </tr>
+            `).join('');
+        });
+    }
+
+    function loadGeofences() {
+        fetch('/api/geofences/')
+        .then(r => r.json())
+        .then(data => {
+            const container = document.getElementById('geofences-container');
+            container.innerHTML = (data.results || data).map(gf => `
+                <div class="alert alert-info mb-2">
+                    <strong>${gf.name}</strong> - ${gf.description}
+                </div>
+            `).join('');
+        });
+    }
+
+    function loadDataSources() {
+        fetch('/api/data-sources/')
+        .then(r => r.json())
+        .then(data => {
+            const container = document.getElementById('datasources-container');
+            container.innerHTML = (data.results || data).map(ds => `
+                <div class="alert alert-info mb-2">
+                    <strong>${ds.name}</strong> (${ds.source_type})
+                    <br><small>${ds.endpoint || 'N/A'}</small>
+                </div>
+            `).join('');
+        });
+    }
+
+    function loadAuditLogs() {
+        fetch('/api/audit-logs/?ordering=-timestamp')
+        .then(r => r.json())
+        .then(data => {
+            const tbody = document.getElementById('audit-tbody');
+            tbody.innerHTML = (data.results || data).slice(0, 20).map(log => `
+                <tr>
+                    <td>${new Date(log.timestamp).toLocaleString()}</td>
+                    <td>${log.user_name}</td>
+                    <td><span class="badge bg-secondary">${log.action}</span></td>
+                    <td>${log.resource_type}</td>
+                    <td>${log.description}</td>
+                </tr>
+            `).join('');
+        });
+    }
+
+    function editUser(userId) {
+        alert('Edit user: ' + userId);
+    }
+</script>
+
+<!-- Add User Modal -->
+<div class="modal fade" id="addUserModal" tabindex="-1" aria-labelledby="addUserModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addUserModalLabel">Add New User</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addUserForm">
+                    <div class="mb-3">
+                        <label for="username" class="form-label">Username</label>
+                        <input type="text" class="form-control" id="username" name="username" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="email" class="form-label">Email</label>
+                        <input type="email" class="form-control" id="email" name="email" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="first_name" class="form-label">First Name</label>
+                        <input type="text" class="form-control" id="first_name" name="first_name">
+                    </div>
+                    <div class="mb-3">
+                        <label for="last_name" class="form-label">Last Name</label>
+                        <input type="text" class="form-control" id="last_name" name="last_name">
+                    </div>
+                    <div class="mb-3">
+                        <label for="password" class="form-label">Password</label>
+                        <input type="password" class="form-control" id="password" name="password" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="role" class="form-label">Role</label>
+                        <select class="form-select" id="role" name="role" required>
+                            <option value="public">Public</option>
+                            <option value="responder">Responder</option>
+                            <option value="analyst">Analyst</option>
+                            <option value="admin">Admin</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="organization" class="form-label">Organization</label>
+                        <input type="text" class="form-control" id="organization" name="organization">
+                    </div>
+                    <div class="mb-3">
+                        <label for="phone" class="form-label">Phone</label>
+                        <input type="tel" class="form-control" id="phone" name="phone">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="submitAddUser()">Add User</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Geofence Modal -->
+<div class="modal fade" id="addGeofenceModal" tabindex="-1" aria-labelledby="addGeofenceModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addGeofenceModalLabel">Add New Geofence</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addGeofenceForm">
+                    <div class="mb-3">
+                        <label for="geofence_name" class="form-label">Name</label>
+                        <input type="text" class="form-control" id="geofence_name" name="name" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="geofence_description" class="form-label">Description</label>
+                        <textarea class="form-control" id="geofence_description" name="description" rows="2"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="geofence_coordinates" class="form-label">Coordinates (JSON)</label>
+                        <textarea class="form-control" id="geofence_coordinates" name="coordinates" rows="3" placeholder='{"type": "Point", "coordinates": [0, 0]}' required></textarea>
+                        <small class="text-muted">Enter GeoJSON format</small>
+                    </div>
+                    <div class="mb-3">
+                        <label for="radius_km" class="form-label">Radius (km)</label>
+                        <input type="number" class="form-control" id="radius_km" name="radius_km" step="0.1">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="submitAddGeofence()">Add Geofence</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Data Source Modal -->
+<div class="modal fade" id="addDataSourceModal" tabindex="-1" aria-labelledby="addDataSourceModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addDataSourceModalLabel">Add New Data Source</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addDataSourceForm" enctype="multipart/form-data">
+                    <div class="mb-3">
+                        <label for="datasource_name" class="form-label">Name</label>
+                        <input type="text" class="form-control" id="datasource_name" name="name" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="source_type" class="form-label">Source Type</label>
+                        <select class="form-select" id="source_type" name="source_type" required onchange="toggleDataSourceFields()">
+                            <option value="">Select type...</option>
+                            <option value="api">API</option>
+                            <option value="csv">CSV Upload</option>
+                            <option value="file">File Upload</option>
+                            <option value="database">Database</option>
+                            <option value="sensor">Sensor Network</option>
+                            <option value="satellite">Satellite Data</option>
+                            <option value="weather">Weather Service</option>
+                            <option value="stream">Data Stream</option>
+                        </select>
+                    </div>
+                    <div class="mb-3" id="endpoint_field">
+                        <label for="endpoint" class="form-label">Endpoint/URL</label>
+                        <input type="text" class="form-control" id="endpoint" name="endpoint">
+                        <small class="text-muted">Required for API, Database, Weather, and Stream sources</small>
+                    </div>
+                    <div class="mb-3" id="file_upload_field" style="display: none;">
+                        <label for="file_upload" class="form-label">Upload File</label>
+                        <input type="file" class="form-control" id="file_upload" name="file" accept=".csv,.json,.xml,.txt">
+                        <small class="text-muted">Select a file from your computer (CSV, JSON, XML, or TXT)</small>
+                        <div id="file_upload_status" class="mt-2"></div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="sync_interval_minutes" class="form-label">Sync Interval (minutes)</label>
+                        <input type="number" class="form-control" id="sync_interval_minutes" name="sync_interval_minutes" value="60">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="submitAddDataSource()">Add Data Source</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function submitAddUser() {
+        const form = document.getElementById('addUserForm');
+        const formData = new FormData(form);
+        const data = Object.fromEntries(formData.entries());
+        
+        fetch('/api/users/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify(data)
+        })
+        .then(response => {
+            if (!response.ok) {
+                return response.json().then(err => { throw err; });
+            }
+            return response.json();
+        })
+        .then(data => {
+            Notify.success('User added successfully!');
+            bootstrap.Modal.getInstance(document.getElementById('addUserModal')).hide();
+            form.reset();
+            loadUsers();
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            Notify.error('Failed to add user: ' + (error.detail || JSON.stringify(error)));
+        });
+    }
+
+    function submitAddGeofence() {
+        const form = document.getElementById('addGeofenceForm');
+        const formData = new FormData(form);
+        const data = Object.fromEntries(formData.entries());
+        
+        try {
+            data.coordinates = JSON.parse(data.coordinates);
+        } catch (e) {
+            Notify.error('Invalid JSON format for coordinates');
+            return;
+        }
+        
+        fetch('/api/geofences/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify(data)
+        })
+        .then(response => {
+            if (!response.ok) {
+                return response.json().then(err => { throw err; });
+            }
+            return response.json();
+        })
+        .then(data => {
+            Notify.success('Geofence added successfully!');
+            bootstrap.Modal.getInstance(document.getElementById('addGeofenceModal')).hide();
+            form.reset();
+            loadGeofences();
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            Notify.error('Failed to add geofence: ' + (error.detail || JSON.stringify(error)));
+        });
+    }
+
+    function toggleDataSourceFields() {
+        const sourceType = document.getElementById('source_type').value;
+        const endpointField = document.getElementById('endpoint_field');
+        const fileUploadField = document.getElementById('file_upload_field');
+        const endpointInput = document.getElementById('endpoint');
+        const fileUploadInput = document.getElementById('file_upload');
+        
+        // Show/hide fields based on source type
+        if (sourceType === 'file' || sourceType === 'csv') {
+            endpointField.style.display = 'none';
+            fileUploadField.style.display = 'block';
+            endpointInput.removeAttribute('required');
+            fileUploadInput.setAttribute('required', 'required');
+        } else {
+            endpointField.style.display = 'block';
+            fileUploadField.style.display = 'none';
+            fileUploadInput.removeAttribute('required');
+            if (sourceType === 'api' || sourceType === 'database' || sourceType === 'weather' || sourceType === 'stream') {
+                endpointInput.setAttribute('required', 'required');
+            } else {
+                endpointInput.removeAttribute('required');
+            }
+        }
+    }
+
+    function submitAddDataSource() {
+        const form = document.getElementById('addDataSourceForm');
+        const formData = new FormData(form);
+        const sourceType = formData.get('source_type');
+        const fileInput = document.getElementById('file_upload');
+        
+        // Check if this is a file upload
+        if ((sourceType === 'file' || sourceType === 'csv') && fileInput.files.length > 0) {
+            // Upload file first
+            const uploadFormData = new FormData();
+            uploadFormData.append('file', fileInput.files[0]);
+            uploadFormData.append('source_type', sourceType);
+            
+            document.getElementById('file_upload_status').innerHTML = '<div class="spinner-border spinner-border-sm" role="status"><span class="visually-hidden">Uploading...</span></div> Uploading file...';
+            
+            fetch('/api/data-sources/upload/', {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: uploadFormData
+            })
+            .then(response => {
+                const contentType = response.headers.get('content-type');
+                if (!response.ok) {
+                    if (contentType && contentType.includes('application/json')) {
+                        return response.json().then(err => { throw err; });
+                    } else {
+                        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                    }
+                }
+                if (contentType && contentType.includes('application/json')) {
+                    return response.json();
+                } else {
+                    throw new Error('Invalid response format: expected JSON');
+                }
+            })
+            .then(uploadResult => {
+                // Now create the data source with the uploaded file path
+                const data = {
+                    name: formData.get('name'),
+                    source_type: sourceType,
+                    file_path: uploadResult.file_path,
+                    sync_interval_minutes: formData.get('sync_interval_minutes')
+                };
+                
+                return fetch('/api/data-sources/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCookie('csrftoken')
+                    },
+                    body: JSON.stringify(data)
+                });
+            })
+            .then(response => {
+                if (!response.ok) {
+                    return response.json().then(err => { throw err; });
+                }
+                return response.json();
+            })
+            .then(data => {
+                Notify.success('Data source added successfully!');
+                bootstrap.Modal.getInstance(document.getElementById('addDataSourceModal')).hide();
+                form.reset();
+                document.getElementById('file_upload_status').innerHTML = '';
+                toggleDataSourceFields();
+                loadDataSources();
+            })
+            .catch(error => {
+                console.error('Upload error:', error);
+                let errorMsg = 'Upload failed';
+                if (error.error) {
+                    errorMsg = error.error;
+                } else if (error.detail) {
+                    errorMsg = error.detail;
+                } else if (error.message) {
+                    errorMsg = error.message;
+                } else {
+                    errorMsg = String(error);
+                }
+                document.getElementById('file_upload_status').innerHTML = '<div class="text-danger">Upload failed: ' + errorMsg + '</div>';
+                Notify.error('Failed to upload file: ' + errorMsg);
+            });
+        } else {
+            // Regular data source (API, etc.)
+            const data = {
+                name: formData.get('name'),
+                source_type: sourceType,
+                endpoint: formData.get('endpoint'),
+                sync_interval_minutes: formData.get('sync_interval_minutes')
+            };
+            
+            // Remove empty fields
+            Object.keys(data).forEach(key => {
+                if (data[key] === '' || data[key] === null) {
+                    delete data[key];
+                }
+            });
+            
+            fetch('/api/data-sources/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => {
+                if (!response.ok) {
+                    return response.json().then(err => { throw err; });
+                }
+                return response.json();
+            })
+            .then(data => {
+                Notify.success('Data source added successfully!');
+                bootstrap.Modal.getInstance(document.getElementById('addDataSourceModal')).hide();
+                form.reset();
+                toggleDataSourceFields();
+                loadDataSources();
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                Notify.error('Failed to add data source: ' + (error.detail || JSON.stringify(error)));
+            });
+        }
+    }
+
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+</script>
+{% endblock %}

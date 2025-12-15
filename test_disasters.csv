@@ -1,0 +1,6 @@
+disaster_type,location_name,latitude,longitude,risk_score,confidence_level,magnitude,predicted_time,status
+Earthquake,San Francisco,37.7749,-122.4194,85.5,90,6.2,2025-12-15T10:00:00Z,predicted
+Flood,New York,40.7128,-74.0060,72.3,85,0,2025-12-15T11:30:00Z,active
+Wildfire,Los Angeles,34.0522,-118.2437,68.9,80,0,2025-12-15T12:00:00Z,predicted
+Cyclone,Miami,25.7617,-80.1918,78.5,88,0,2025-12-15T13:00:00Z,predicted
+Flood,Houston,29.7604,-95.3698,65.2,75,0,2025-12-15T14:00:00Z,active

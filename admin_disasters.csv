@@ -1,0 +1,11 @@
+event_id,disaster_type,region,state,latitude,longitude,severity,risk_score,affected_population,source,timestamp
+E001,Flood,Chennai,Tamil Nadu,13.0827,80.2707,High,82,120000,IMD,2025-12-15 08:00:00
+E002,Cyclone,Visakhapatnam,Andhra Pradesh,17.6868,83.2185,Very High,92,250000,IMD,2025-12-15 09:30:00
+E003,Earthquake,Coimbatore,Tamil Nadu,11.0168,76.9558,Medium,64,45000,USGS,2025-12-15 10:15:00
+E004,Wildfire,Nilgiris,Tamil Nadu,11.4064,76.6932,Low,41,8000,ForestDept,2025-12-15 11:00:00
+E005,Flood,Alappuzha,Kerala,9.4981,76.3388,High,78,98000,IMD,2025-12-15 12:30:00
+E006,Landslide,Idukki,Kerala,9.8499,76.9787,High,81,22000,SDMA,2025-12-15 13:00:00
+E007,Heatwave,Nagpur,Maharashtra,21.1458,79.0882,Medium,66,180000,IMD,2025-12-15 14:00:00
+E008,Drought,Anantapur,Andhra Pradesh,14.6819,77.6006,High,79,310000,AgriDept,2025-12-15 15:30:00
+E009,Cyclone,Puri,Odisha,19.8135,85.8312,Very High,95,400000,IMD,2025-12-15 16:00:00
+E010,Flood,Patna,Bihar,25.5941,85.1376,High,83,275000,IMD,2025-12-15 17:00:00

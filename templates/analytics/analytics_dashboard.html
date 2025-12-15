@@ -1,0 +1,164 @@
+{% extends 'base.html' %}
+
+{% block title %}Analytics - Disaster Dashboard{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="page-title">
+                <i class="bi bi-graph-up"></i> Analytics & Reports
+            </h1>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="stat-icon" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                    <i class="bi bi-exclamation-triangle"></i>
+                </div>
+                <div class="stat-content">
+                    <h6>Total Events (30d)</h6>
+                    <h3 id="total-events">0</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="stat-icon" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                    <i class="bi bi-graph-up"></i>
+                </div>
+                <div class="stat-content">
+                    <h6>High Risk Events</h6>
+                    <h3 id="high-risk-events">0</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="stat-icon" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+                    <i class="bi bi-people"></i>
+                </div>
+                <div class="stat-content">
+                    <h6>Affected Population</h6>
+                    <h3 id="affected-pop">0</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="stat-icon" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);">
+                    <i class="bi bi-cash"></i>
+                </div>
+                <div class="stat-content">
+                    <h6>Est. Damage</h6>
+                    <h3 id="est-damage">$0</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Events by Type</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="eventsByTypeChart"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Alert Distribution</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="alertDistributionChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-lg-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Daily Events Trend</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="trendChart"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Alert Response Time</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="responseTimeChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        loadAnalytics();
+    });
+
+    function loadAnalytics() {
+        fetch('/api/disaster-analytics/summary/?days=30')
+        .then(r => r.json())
+        .then(data => {
+            document.getElementById('total-events').textContent = data.total_events;
+            document.getElementById('high-risk-events').textContent = data.high_risk_events;
+            document.getElementById('affected-pop').textContent = data.total_affected_population.toLocaleString();
+            document.getElementById('est-damage').textContent = '$' + (data.total_estimated_damage / 1000000).toFixed(1) + 'M';
+        });
+
+        fetch('/api/disaster-analytics/by_type/?days=30')
+        .then(r => r.json())
+        .then(data => {
+            const ctx = document.getElementById('eventsByTypeChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: data.map(d => d.disaster_type),
+                    datasets: [{
+                        label: 'Events',
+                        data: data.map(d => d.total_events),
+                        backgroundColor: ['#667eea', '#f093fb', '#4facfe', '#fa709a']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { display: false }
+                    }
+                }
+            });
+        });
+
+        fetch('/api/alert-analytics/summary/?days=30')
+        .then(r => r.json())
+        .then(data => {
+            const ctx = document.getElementById('alertDistributionChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Critical', 'High', 'Medium', 'Low'],
+                    datasets: [{
+                        data: [data.critical_alerts, data.high_alerts, data.medium_alerts, data.low_alerts],
+                        backgroundColor: ['#dc3545', '#fd7e14', '#ffc107', '#28a745']
+                    }]
+                }
+            });
+        });
+    }
+</script>
+{% endblock %}

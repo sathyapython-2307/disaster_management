@@ -1,0 +1,6 @@
+event_id,disaster_type,location_name,latitude,longitude,severity,risk_score,affected_population,source,timestamp
+E011,Flood,Srinagar,34.0837,74.7973,High,80,50000,IMD,2025-12-15 18:00:00
+E012,Earthquake,Leh,34.1526,77.5769,Medium,65,5000,NDMA,2025-12-15 18:30:00
+E013,Flood,Uttarkashi,30.7283,78.9596,Very High,91,35000,IMD,2025-12-15 19:00:00
+E014,Wildfire,Mussoorie,30.4612,78.7597,High,82,8000,SDMA,2025-12-15 19:30:00
+E015,Flood,Nainital,29.3917,79.4504,Very High,93,15000,IMD,2025-12-15 20:00:00

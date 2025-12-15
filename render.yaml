@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: disaster-dashboard
+    runtime: python
+    runtimeVersion: 3.11
+    plan: free
+    buildCommand: |
+      pip install -r requirements.txt
+      python manage.py collectstatic --noinput
+    startCommand: gunicorn disaster_dashboard.wsgi:application
+    envVars:
+      - key: DEBUG
+        value: false
+      - key: ALLOWED_HOSTS
+        value: "*"
+      - key: DATABASE_URL
+        sync: false
