@@ -1,1 +1,1 @@
-web: gunicorn disaster_dashboard.wsgi:application
+web: mkdir -p logs && gunicorn disaster_dashboard.wsgi:application
